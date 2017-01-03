@@ -1,0 +1,234 @@
+<link rel="import" href="../components/polymer/polymer.html">
+
+<script src="../components/webrtc-adapter/release/adapter.js"></script>
+
+<dom-module id='rtc-peer-connection'>
+    <template>
+        <h1>rtc-peer-connection</h1>
+        <slot></slot>
+    </template>
+
+    <script>
+        class RtcPeerConnection extends Polymer.Element {
+            constructor() {
+                super();
+
+                console.log(`RtcPeerConnection.constructor`);
+            }
+
+            static get is() {
+                return `rtc-peer-connection`;
+            }
+
+            static get config() {
+                return {
+                    properties: {
+                        instigator: {
+                            type: Boolean,
+                            default: false
+                        },
+                        message: Object,
+                        peer: String,
+                        signaling: {
+                            type: Object
+                        }
+                    }
+                };
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+
+                console.log(`RtcPeerConnection.connectedCallback`, this, this.peer, this.message, this.signaling);
+
+
+
+
+
+        // let isInstigator = true;
+        //   console.log('createPeerConnection', this.peer, isInstigator)
+        let configuration = null;
+        this._pc = new RTCPeerConnection(configuration);
+
+        let self = this;
+
+        // this.signaling.onmessage = this.onSignal.bind(this);
+
+        // send any ice candidates to the other peer
+        this._pc.onicecandidate = evt => {
+            this.signaling.send(this.peer, { "candidate": evt.candidate });
+        };
+
+        // let the "negotiationneeded" event trigger offer generation
+        this._pc.onnegotiationneeded = _ => {
+            this._pc.createOffer().then(offer => {
+                return this._pc.setLocalDescription(offer);
+            })
+            .then(_ => {
+                // send the offer to the other peer
+                this.signaling.send(this.peer, { "desc": this._pc.localDescription });
+            })
+            .catch(this.logError);
+        };
+/*
+        if (this.instigator) {
+            // create data channel and setup chat
+            var channel = this._pc.createDataChannel("chat");
+            this.setupChat(channel);
+        } else {
+            // setup chat on incoming data channel
+            this._pc.ondatachannel = evt => {
+                console.log('sadasdasdasdadadadadadadadasda')
+                var channel = evt.channel;
+                this.setupChat(channel);
+            };
+        }
+*/
+        if (this.message) {
+            this.onSignal(this.message);
+        }
+// signalingChannel.onmessage = function (evt) {
+        // return pc;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            }
+
+            disconnectedCallback() {
+                super.disconnectedCallback();
+
+                console.log(`RtcPeerConnection.disconnectedCallback`);
+            }
+
+
+
+/*
+    onSignal(from, data) {
+        console.log('onSignal', from, data, this, this.peers)
+
+        let pc = this.peers[from];
+
+        if (!pc) {
+            pc = this.peers[from] = this.createPeerConnection(from, false);
+        }
+
+        let self = this;
+
+        // var message = JSON.parse(evt.data);
+        var message = data;
+        if (message.desc) {
+            var desc = message.desc;
+
+            // if we get an offer, we need to reply with an answer
+            if (desc.type == "offer") {
+                pc.setRemoteDescription(desc).then(function () {
+                    return pc.createAnswer();
+                })
+                .then(function (answer) {
+                    return pc.setLocalDescription(answer);
+                })
+                .then(function () {
+                    self._signalingChannel.send(from, { "desc": pc.localDescription });
+                })
+                .catch(this.logError);
+            } else {
+                pc.setRemoteDescription(desc).catch(this.logError);
+            }
+        } else {
+            pc.addIceCandidate(message.candidate).catch(this.logError);
+        }
+      }
+*/      
+    onSignal(message) {
+        console.log('onSignal', message)
+
+        if (message.desc) {
+            var desc = message.desc;
+
+            // if we get an offer, we need to reply with an answer
+            if (desc.type == "offer") {
+                this._pc.setRemoteDescription(desc).then(_ => {
+                    return this._pc.createAnswer();
+                })
+                .then(answer => {
+                    return this._pc.setLocalDescription(answer);
+                })
+                .then(_ => {
+                    this.signaling.send(this.peer, { "desc": this._pc.localDescription });
+                })
+                .catch(this.logError);
+            } else {
+                this._pc.setRemoteDescription(desc).catch(this.logError);
+            }
+        } else {
+            this._pc.addIceCandidate(message.candidate).catch(this.logError);
+        }
+    }
+
+
+
+
+
+
+//             // setupChat(channel) {
+//             //     console.log('setupChat', channel)
+//             // }
+// setupChat(_channel) {
+//     this.channel = _channel;
+//     this.channel.onopen = _ => {
+//         console.log('channel.onopen')
+
+//         this.sendChatMessage('did it all work?')
+//         // e.g. enable send button
+//         // enableChat(channel);
+//         // sendChatMessage('this is a chat message')
+//         this.$.dataChannelSend.disabled = false;
+//         this.$.dataChannelSend.focus();        
+//     };
+
+//     this.channel.onclose = _ => {
+
+//     };
+
+//     this.channel.onmessage = evt => {
+//         console.log('channel.onmessage', evt)
+//         // showChatMessage(evt.data);
+//         this.$.dataChannelReceive.value = event.data;
+//     };
+
+// }
+
+// _sendButtonClicked() {
+//     this.sendChatMessage(this.$.dataChannelSend.value);
+// }
+
+// sendChatMessage(msg) {
+//     console.log('sendChatMessage', msg)
+//     this.channel.send(msg);
+// }
+
+
+        }
+
+        customElements.define(RtcPeerConnection.is, RtcPeerConnection);
+    </script>
+</dom-module>

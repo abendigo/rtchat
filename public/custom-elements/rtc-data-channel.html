@@ -1,0 +1,107 @@
+<link rel="import" href="../components/polymer/polymer.html">
+
+<dom-module id='rtc-data-channel'>
+    <template>
+        <h1>rtc-data-channel</h1>
+  <textarea id="dataChannelSend" disabled
+    placeholder="Press Start, enter some text, then press Send."></textarea>
+  <textarea id="dataChannelReceive" disabled></textarea>
+
+  <div id="buttons">
+    <!--<button id="startButton">Start</button>-->
+    <button id="sendButton" on-click="_sendButtonClicked">Send</button>
+    <!--<button id="closeButton">Stop</button>-->
+  </div>
+    </template>
+
+    <script>
+        class RtcDataChannel extends Polymer.Element {
+            static get is() {
+                return 'rtc-data-channel';
+            }
+
+            static get config() {
+                return {
+                    properties: {
+                        instigator: {
+                            type: Boolean,
+                            default: false
+                        }
+                    }
+                };
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+
+                console.log('asdasdasdada', this.instigator, this.parentNode._pc);
+                this._pc = this.parentNode._pc;
+                if (this.instigator) {
+                    // create data channel and setup chat
+                    var channel = this._pc.createDataChannel("chat");
+                    this.setupChat(channel);
+                } else {
+                    // setup chat on incoming data channel
+                    this._pc.ondatachannel = evt => {
+                        var channel = evt.channel;
+                        this.setupChat(channel);
+                    };
+                }
+            }
+
+
+
+            // setupChat(channel) {
+            //     console.log('setupChat', channel)
+            // }
+setupChat(_channel) {
+    this.channel = _channel;
+    this.channel.onopen = _ => {
+        console.log('channel.onopen')
+
+        this.sendChatMessage('did it all work?')
+        // e.g. enable send button
+        // enableChat(channel);
+        // sendChatMessage('this is a chat message')
+        this.$.dataChannelSend.disabled = false;
+        this.$.dataChannelSend.focus();        
+    };
+
+    this.channel.onclose = _ => {
+
+    };
+
+    this.channel.onmessage = evt => {
+        console.log('channel.onmessage', evt)
+        // showChatMessage(evt.data);
+        this.$.dataChannelReceive.value = event.data;
+    };
+
+}
+
+_sendButtonClicked() {
+    this.sendChatMessage(this.$.dataChannelSend.value);
+}
+
+sendChatMessage(msg) {
+    console.log('sendChatMessage', msg)
+    this.channel.send(msg);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+        }
+
+        customElements.define(RtcDataChannel.is, RtcDataChannel);
+    </script>
+</dom-module>

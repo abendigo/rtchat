@@ -1,0 +1,8 @@
+{
+  "name": "rtchat",
+  "dependencies": {
+    "webrtc-adapter": "^2.1.0",
+    "polymer": "Polymer/polymer#2.0-preview",
+    "polymerfire": "firebase/polymerfire#2.0-preview"
+  }
+}

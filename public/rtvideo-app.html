@@ -1,0 +1,109 @@
+<link rel="import" href="components/polymer/polymer.html">
+
+<link rel="import" href="custom-elements/rtc-media-stream.html">
+<link rel="import" href="custom-elements/rtc-peer-connection.html">
+<link rel="import" href="custom-elements/rtc-signaling-channel.html">
+
+<dom-module id="rtvideo-app">
+  <template>
+    <input id="name" value="Dave"></input>
+    <button id="startButton" on-click="createConnection">Connect</button>
+   
+    <rtc-signaling-channel instance={{_signalingChannel}} users={{users}}
+        on-signaling="_onSignalingSignal">
+    </rtc-signaling-channel>
+
+    <dom-repeat items=[[_toArray(users)]]>
+        <template><div>[[index]]: [[item.key]] [[item.value.name]] 
+            <button id=[[item.key]] on-click="_createPeerConnection">Peer</button></div>
+        </template>
+    </dom-repeat>
+
+    <dom-repeat items=[[_toArray(peers)]]>
+        <template>
+            [[item]] [[item.key]] [[item.value.instigator]]
+            <rtc-peer-connection id=[[item.key]] message=[[item.value.message]]
+                    instigator$=[[item.value.instigator]] peer=[[item.key]] signaling=[[_signalingChannel]]>
+                <!--<rtc-data-channel instigator$=[[item.value.instigator]]></rtc-data-channel>-->
+                <rtc-media-stream instigator$=[[item.value.instigator]]></rtc-media-stream>
+            </rtc-peer-connection>
+        </template>
+    </dom-repeat>
+  </template>
+
+  <script>
+    class RtvideoApp extends Polymer.Element {
+      constructor() {
+          super();
+      }
+
+      static get is() {
+        return 'rtvideo-app';
+      }
+
+      static get config() {
+        return {
+            properties: {
+                users: {
+                    type: Object,
+                    value: {}
+                },
+                peers: {
+                    type: Object,
+                    value: {}
+                }
+            }
+        };
+      }
+
+      _toArray(obj) {
+          return Object.keys(obj).map(key => {
+              return {key: key, value: obj[key]}
+          });
+      }
+
+    //   _onSignalingInstance(event) {
+    //       console.log('_onSignalingInstance', event.detail);
+    //       this._signalingChannel = event.detail;
+    //   }
+
+      _onSignalingSignal(event) {
+          console.log('_onSignalingSignal', event.detail);
+          this.onSignal(event.detail.from, event.detail.data);
+      }
+
+    //   _onSignalingUsers(event) {
+    //       console.log('_onSignalingUsers', event.detail);
+    //       this.users = event.detail;
+    //   }
+
+      createConnection() {
+          this._signalingChannel.connect(this.$.name.value);
+      }
+
+      _createPeerConnection(event) {
+          console.log('_createPeerConnection', event.target.id)
+
+          let target = event.target.id;
+          this.set(`peers.${target}`, {instigator: true})
+      }
+
+      onSignal(from, data) {
+          console.log('onSignal', from, data, this, this.peers)
+
+          let pc = this.peers[from];
+
+            if (!pc) {
+                console.log('aaaaaaaaaaaaa panic aaaaaaaaaaa')
+                // pc = this.peers[from] = this.createPeerConnection(from, false);
+                this.set(`peers.${from}`, {instigator: false, message: data});
+            } else {
+                let pp = this.shadowRoot.querySelector(`rtc-peer-connection#${from}`)
+                pp.onSignal(data);
+            }
+        }
+    }
+
+    customElements.define(RtvideoApp.is, RtvideoApp);
+  </script>
+</dom-module>

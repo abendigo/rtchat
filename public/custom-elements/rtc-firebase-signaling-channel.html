@@ -1,0 +1,141 @@
+<link rel="import" href="../components/polymer/polymer.html">
+
+<link rel="import" href="../components/polymerfire/firebase-app.html">
+<link rel="import" href="../components/polymerfire/firebase-auth.html">
+<link rel="import" href="../components/polymerfire/firebase-document.html">
+<link rel="import" href="../components/polymerfire/firebase-query.html">
+
+<dom-module id='rtc-firebase-signaling-channel'>
+    <template>
+        <firebase-app        
+            name="notes"
+            api-key="AIzaSyAoG6s5iYluDfK_couEB5_QqazvtJU5FZI"
+            auth-domain="m13d-polymerfire-pwa.firebaseapp.com",
+            database-url="https://m13d-polymerfire-pwa.firebaseio.com"
+            storage-bucket="m13d-polymerfire-pwa.appspot.com"
+            messaging-sender-id="113724797276">
+        </firebase-app>
+        <firebase-auth
+            id="auth"
+            app-name="notes"
+            provider="google"
+            signed-in={{signedIn}}
+            user={{user}}>
+        </firebase-auth>
+
+
+
+        <!--<firebase-document
+            id="document"
+            app-name="notes"
+            path="[[editableNoteId]]"
+            data="{{editableNote}}">
+        </firebase-document>-->
+        <firebase-document
+            id="constat"
+            app-name="notes"
+            path="/.info/connected"
+            data={{conStatData}}>
+        </firebase-document>
+        <!--<firebase-document
+            id="presence"
+            app-name="notes"
+            path="/presence/[[user.uid]]"
+            data={{presenceData}}>
+        </firebase-document>-->
+        <firebase-document
+            id="query"
+            app-name="notes"
+            path="/presence"
+            data="{{presenceData}}">
+        </firebase-document>
+
+
+
+
+        <h1>rtc-firebase-signaling-channel</h1>
+    </template>
+
+    <script>
+        class RtcFirebaseSignalingChannel extends Polymer.Element {
+            static get is() {
+                return 'rtc-firebase-signaling-channel';
+            }
+
+            static get config() {
+                return {
+                    properties: {
+                        instance: {
+                            type: Object,
+                            notify: true
+                        },
+                        users: {
+                            type: Object,
+                            notify: true
+                        },
+
+                        user: {
+                            type: Object,
+                            observer: '_userChanged'
+                        },
+                        presenceData: {
+                            type: Object,
+                            observer: '_usersChanged'
+                        },
+                        conStatData: {
+                            type: Object,
+                            observer: '_statChanged'
+                        }
+                    },
+
+                    // observers: ['_users(notes)']
+                };
+            }
+
+            // _users(data) {
+            //     console.log('===============', data)
+            // }
+
+            _userChanged(newValue, oldValue) {
+                console.log('_userChanged', newValue, oldValue)
+            }
+
+            _usersChanged(newValue, oldValue) {
+                console.log('_usersChanged', newValue, oldValue)
+            }
+
+            _statChanged(newValue, oldValue) {
+                console.log('_statChanged', newValue, oldValue)
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+
+                this.instance = this;
+
+            }
+
+            connect(name) {
+                this.$.auth.signInWithPopup();
+                // this._socket = io();
+
+                // this._socket.on('users', data => {
+                //     this.users = data;
+                //     // this.dispatchEvent(new CustomEvent('users', {detail: data}), {bubbles: true});
+                // });
+
+                // this._socket.on('signaling', (from, data) => {
+                //     this.dispatchEvent(new CustomEvent('signaling', {detail: {from, data}}), {bubbles: true});
+                // });
+
+                // this._socket.emit('aaa', name);
+            }
+
+            send(target, data) {
+                // this._socket.emit('signaling', target, data);
+            }
+        }
+
+        customElements.define(RtcFirebaseSignalingChannel.is, RtcFirebaseSignalingChannel);
+    </script>
+</dom-module>

@@ -1,0 +1,59 @@
+<link rel="import" href="../components/polymer/polymer.html">
+
+<script src="/socket.io/socket.io.js"></script>
+
+<dom-module id='rtc-signaling-channel'>
+    <template>
+        <h1>rtc-signaling-channel</h1>
+    </template>
+
+    <script>
+        class RtcSignalingChannel extends Polymer.Element {
+            static get is() {
+                return 'rtc-signaling-channel';
+            }
+
+            static get config() {
+                return {
+                    properties: {
+                        instance: {
+                            type: Object,
+                            notify: true
+                        },
+                        users: {
+                            type: Object,
+                            notify: true
+                        }
+                    }
+                };
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+
+                this.instance = this;
+            }
+
+            connect(name) {
+                this._socket = io();
+
+                this._socket.on('users', data => {
+                    this.users = data;
+                    // this.dispatchEvent(new CustomEvent('users', {detail: data}), {bubbles: true});
+                });
+
+                this._socket.on('signaling', (from, data) => {
+                    this.dispatchEvent(new CustomEvent('signaling', {detail: {from, data}}), {bubbles: true});
+                });
+
+                this._socket.emit('aaa', name);
+            }
+
+            send(target, data) {
+                this._socket.emit('signaling', target, data);
+            }
+        }
+
+        customElements.define(RtcSignalingChannel.is, RtcSignalingChannel);
+    </script>
+</dom-module>
