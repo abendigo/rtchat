@@ -1,3 +1,4 @@
 *.pem
+debug.log
 node_modules
 public/components

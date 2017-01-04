@@ -1,15 +1,15 @@
 <link rel="import" href="../components/polymer/polymer.html">
 
 <dom-module id='rtc-media-stream'>
-    <template>
+    <!--<template>
         <h1>rtc-media-stream</h1>
   
         <video id="video" autoplay></video>
-    </template>
+    </template>-->
 
     <script>
-navigator.getUserMedia = navigator.getUserMedia ||
-    navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        navigator.getUserMedia = navigator.getUserMedia ||
+            navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
     
         class RtcMediaStream extends Polymer.Element {
             static get is() {
@@ -19,9 +19,18 @@ navigator.getUserMedia = navigator.getUserMedia ||
             static get config() {
                 return {
                     properties: {
-                        instigator: {
-                            type: Boolean,
-                            default: false
+                        // instigator: {
+                        //     type: Boolean,
+                        //     default: false
+                        // },
+
+                        in: {
+                            type: Object,
+                            observer: '_inChanged'
+                        },
+                        out: {
+                            type: Object,
+                            notify: true
                         }
                     }
                 };
@@ -30,37 +39,42 @@ navigator.getUserMedia = navigator.getUserMedia ||
             connectedCallback() {
                 super.connectedCallback();
 
-
-                console.log('asdasdasdada', this.instigator, this.parentNode._pc);
+                // console.log('asdasdasdada', this.instigator, this.parentNode._pc);
                 this._pc = this.parentNode._pc;
-                if (this.instigator) {
-                    // create data channel and setup chat
-                    // var channel = this._pc.createDataChannel("chat");
-                    // this.setupChat(channel);
-                    function successCallback(stream) {
-                        console.log('SUCCESS', stream)
-                        this._pc.addStream(stream);
-                    }
-                    function errorCallback(error) {
-                        console.log('navigator.getUserMedia error: ', error);
-                    }
+                // if (this.instigator) {
+                //     // create data channel and setup chat
+                //     // var channel = this._pc.createDataChannel("chat");
+                //     // this.setupChat(channel);
+                //     function successCallback(stream) {
+                //         console.log('SUCCESS', stream)
+                //         this._pc.addStream(stream);
+                //     }
+                //     function errorCallback(error) {
+                //         console.log('navigator.getUserMedia error: ', error);
+                //     }
 
-                    var constraints = {
-                        audio: false,
-                        video: true
-                    };
-                    navigator.getUserMedia(constraints, successCallback.bind(this), errorCallback);
-                } else {
+                //     var constraints = {
+                //         audio: false,
+                //         video: true
+                //     };
+                //     navigator.getUserMedia(constraints, successCallback.bind(this), errorCallback);
+                // } else {
                     // setup chat on incoming data channel
                     // this._pc.ondatachannel = evt => {
                     //     var channel = evt.channel;
                     //     this.setupChat(channel);
                     // };
                     this._pc.onaddstream = e => {
-                        console.log('-==-=-=-=-==--= anAddStream', e)
-                        this.$.video.srcObject = e.stream;
+                        console.log('-==-=-=-=-==--= anAddStream', this.parentNode.id, e)
+                        // this.$.video.srcObject = e.stream;
+                        this.out = e.stream;
                     }
-                }            
+                // }            
+            }
+
+            _inChanged(newValue, oldValue) {
+                console.log('_inChanged', newValue, oldValue);
+                this._pc.addStream(newValue);
             }
         }
 

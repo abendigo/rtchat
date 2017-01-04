@@ -3,10 +3,10 @@
 <script src="../components/webrtc-adapter/release/adapter.js"></script>
 
 <dom-module id='rtc-peer-connection'>
-    <template>
+    <!--<template>
         <h1>rtc-peer-connection</h1>
         <slot></slot>
-    </template>
+    </template>-->
 
     <script>
         class RtcPeerConnection extends Polymer.Element {
@@ -23,10 +23,10 @@
             static get config() {
                 return {
                     properties: {
-                        instigator: {
-                            type: Boolean,
-                            default: false
-                        },
+                        // instigator: {
+                        //     type: Boolean,
+                        //     default: false
+                        // },
                         message: Object,
                         peer: String,
                         signaling: {
@@ -39,8 +39,8 @@
             connectedCallback() {
                 super.connectedCallback();
 
-                console.log(`RtcPeerConnection.connectedCallback`, this, this.peer, this.message, this.signaling);
-
+                // console.log(`RtcPeerConnection.connectedCallback`, this, this.peer, this.message, this.signaling);
+                this.signaling.connect(this.id, this);
 
 
 
@@ -56,7 +56,7 @@
 
         // send any ice candidates to the other peer
         this._pc.onicecandidate = evt => {
-            this.signaling.send(this.peer, { "candidate": evt.candidate });
+            this.signaling.send({to: this.peer, from: this.id}, { "candidate": evt.candidate });
         };
 
         // let the "negotiationneeded" event trigger offer generation
@@ -66,7 +66,7 @@
             })
             .then(_ => {
                 // send the offer to the other peer
-                this.signaling.send(this.peer, { "desc": this._pc.localDescription });
+                this.signaling.send({to: this.peer, from: this.id}, { "desc": this._pc.localDescription });
             })
             .catch(this.logError);
         };
@@ -159,7 +159,7 @@
       }
 */      
     onSignal(message) {
-        console.log('onSignal', message)
+        // console.log('onSignal', message)
 
         if (message.desc) {
             var desc = message.desc;
@@ -173,7 +173,7 @@
                     return this._pc.setLocalDescription(answer);
                 })
                 .then(_ => {
-                    this.signaling.send(this.peer, { "desc": this._pc.localDescription });
+                    this.signaling.send({to: this.peer, from: this.id}, { "desc": this._pc.localDescription });
                 })
                 .catch(this.logError);
             } else {

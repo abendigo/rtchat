@@ -1,0 +1,56 @@
+<link rel="import" href="../components/polymer/polymer.html">
+
+<link rel="import" href="rtc-signaling-channel-mixin.html">
+
+<dom-module id='rtc-local-signaling-channel'>
+    <template>
+        <h1>rtc-local-signaling-channel</h1>
+    </template>
+
+    <script>
+        class RtcLocalSignalingChannel extends RtcSignalingChannelMixin(Polymer.Element) {
+            static get is() {
+                console.log('RtcLocalSignalingChannel.getIs')
+                return 'rtc-local-signaling-channel';
+            }
+
+            // constructor() {
+            //     console.log('RtcLocalSignalingChannel.constructor')
+            //     super();
+            // }
+
+            // connectedCallback() {
+            //     console.log('RtcLocalSignalingChannel.connectedCallback')
+            //     super.connectedCallback();
+            // }
+
+            connect(name, peer) {
+                // console.log('RtcLocalSignalingChannel.connect', name, peer, this.users)
+
+                this.set(`users.${name}`, {name: name, peer: peer});
+            //     this._socket = io();
+
+            //     this._socket.on('users', data => {
+            //         this.users = data;
+            //         // this.dispatchEvent(new CustomEvent('users', {detail: data}), {bubbles: true});
+            //     });
+
+            //     this._socket.on('signaling', (from, data) => {
+            //         this.dispatchEvent(new CustomEvent('signaling', {detail: {from, data}}), {bubbles: true});
+            //     });
+
+            //     this._socket.emit('aaa', name);
+            }
+
+            send(header, data) {
+                // console.log('RtcLocalSignalingChannel.send', header, data, this.users)
+
+                this.users[header.to].peer.onSignal(data);
+            //     this._socket.emit('signaling', target, data);
+                // this.dispatchEvent(new CustomEvent('signaling', {detail: {header, data}}), {bubbles: true});
+            }
+        }
+
+        customElements.define(RtcLocalSignalingChannel.is, RtcLocalSignalingChannel);
+    </script>
+</dom-module>

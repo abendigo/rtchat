@@ -1,0 +1,187 @@
+<link rel="import" href="components/polymer/polymer.html">
+
+<link rel="import" href="custom-elements/rtc-data-channel.html">
+<link rel="import" href="custom-elements/rtc-local-signaling-channel.html">
+<link rel="import" href="custom-elements/rtc-media-stream.html">
+<link rel="import" href="custom-elements/rtc-peer-connection.html">
+
+<dom-module id="local-app">
+  <template>
+    <rtc-local-signaling-channel instance={{_signalingChannel}} users={{users}}
+        on-signaling="_onSignalingSignal">
+    </rtc-local-signaling-channel>
+
+    <rtc-peer-connection id="one" peer="two" signaling=[[_signalingChannel]]>
+        <rtc-media-stream in=[[_localStream]]></rtc-media-stream>
+        <!--<rtc-data-channel instigator$=[[item.value.instigator]]></rtc-data-channel>-->
+    </rtc-peer-connection>
+
+    <rtc-peer-connection id="two" peer="one" signaling=[[_signalingChannel]]>
+        <rtc-media-stream out={{_remoteStream}}></rtc-media-stream>
+        <!--<rtc-data-channel instigator$=[[item.value.instigator]]></rtc-data-channel>-->
+    </rtc-peer-connection>
+
+    <video id="localVideo" src-object=[[_localStream]] autoplay></video>
+    <video id="remoteVideo" src-object=[[_remoteStream]] autoplay></video>
+
+    <textarea id="dataChannelSend" disabled
+        placeholder="Press Start, enter some text, then press Send."></textarea>
+    <textarea id="dataChannelReceive" disabled></textarea>
+
+    <div id="buttons">
+        <!--<button id="startButton">Start</button>-->
+        <button id="sendButton" on-click="_sendButtonClicked">Send</button>
+        <!--<button id="closeButton">Stop</button>-->
+    </div>
+  </template>
+
+  <script>
+    function trace(text) {
+        if (text[text.length - 1] === '\n') {
+            text = text.substring(0, text.length - 1);
+        }
+        if (window.performance) {
+            var now = (window.performance.now() / 1000).toFixed(3);
+            console.log(now + ': ' + text);
+        } else {
+            console.log(text);
+        }
+    }
+  
+    class LocalApp extends Polymer.Element {
+    //   constructor() {
+    //       super();
+    //   }
+
+      static get is() {
+        return 'local-app';
+      }
+
+      static get config() {
+        return {
+            // properties: {
+            //     users: {
+            //         type: Object,
+            //         value: {}
+            //     },
+            //     peers: {
+            //         type: Object,
+            //         value: {}
+            //     }
+            // },
+
+            // observers: ['_localStreamChanged(_localStream)']
+        };
+      }
+
+      connectedCallback() {
+          console.log('LocalApp.connectedCallback')
+          super.connectedCallback();
+
+        //   this._signalingChannel.connect("one", this.$.one);
+        //   this._signalingChannel.connect("two", this.$.two);
+
+
+/*
+var startTime;
+var localVideo = this.$.localVideo;
+var remoteVideo = this.$.remoteVideo;
+
+localVideo.addEventListener('loadedmetadata', function() {
+  trace('Local video videoWidth: ' + this.videoWidth +
+    'px,  videoHeight: ' + this.videoHeight + 'px');
+});
+
+remoteVideo.addEventListener('loadedmetadata', function() {
+  trace('Remote video videoWidth: ' + this.videoWidth +
+    'px,  videoHeight: ' + this.videoHeight + 'px');
+});
+
+remoteVideo.onresize = function() {
+  trace('Remote video size changed to ' +
+    remoteVideo.videoWidth + 'x' + remoteVideo.videoHeight);
+  // We'll use the first onresize callback as an indication that video has started
+  // playing out.
+  if (startTime) {
+    var elapsedTime = window.performance.now() - startTime;
+    trace('Setup time: ' + elapsedTime.toFixed(3) + 'ms');
+    startTime = null;
+  }
+};
+*/
+  navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: true
+  })
+  .then(stream => {
+    trace('Received local stream');
+    // localVideo.srcObject = stream;
+    // Add localStream to global scope so it's accessible from the browser console
+    // window.localStream = localStream = stream;
+    // callButton.disabled = false;
+    this._localStream = stream;
+  })
+  .catch(function(e) {
+    alert('getUserMedia() error: ' + e.name);
+  });
+
+      }
+
+    //   _localStreamChanged(x) {
+    //       console.log('_localStreamChanged', x)
+    //   }
+
+    //   _toArray(obj) {
+    //       return Object.keys(obj).map(key => {
+    //           return {key: key, value: obj[key]}
+    //       });
+    //   }
+
+    //   _onSignalingInstance(event) {
+    //       console.log('_onSignalingInstance', event.detail);
+    //       this._signalingChannel = event.detail;
+    //   }
+
+    //   _onSignalingSignal(event) {
+    //     //   console.log('_onSignalingSignal', event.detail);
+    //       this.onSignal(event.detail.header, event.detail.data);
+    //   }
+
+    //   _onSignalingUsers(event) {
+    //       console.log('_onSignalingUsers', event.detail);
+    //       this.users = event.detail;
+    //   }
+
+    //   createConnection() {
+    //       this._signalingChannel.connect(this.$.name.value);
+    //   }
+
+    //   _createPeerConnection(event) {
+    //       console.log('_createPeerConnection', event.target.id)
+
+    //       let target = event.target.id;
+    //       this.set(`peers.${target}`, {instigator: true})
+    //   }
+/*
+      onSignal(header, data) {
+        //   console.log('onSignal', header, data, this, this.peers)
+
+          this.$[header.to].onSignal(data);
+
+        //   let pc = this.peers[from];
+
+        //     if (!pc) {
+        //         console.log('aaaaaaaaaaaaa panic aaaaaaaaaaa')
+        //         // pc = this.peers[from] = this.createPeerConnection(from, false);
+        //         this.set(`peers.${from}`, {instigator: false, message: data});
+        //     } else {
+        //         let pp = this.shadowRoot.querySelector(`rtc-peer-connection#${from}`)
+        //         pp.onSignal(data);
+        //     }
+        }
+*/        
+    }
+
+    customElements.define(LocalApp.is, LocalApp);
+  </script>
+</dom-module>

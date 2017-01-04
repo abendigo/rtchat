@@ -1,0 +1,36 @@
+<script>
+    const RtcSignalingChannelMixin = subclass => class extends subclass {
+        static get config() {
+            console.log('RtcSignalingChannelMixin.getConfig')
+            return {
+                properties: {
+                    instance: {
+                        type: Object,
+                        notify: true
+                    },
+                    users: {
+                        type: Object,
+                        notify: true,
+                        value: {}
+                    }
+                }
+            };
+        }
+
+        connectedCallback() {
+            console.log('RtcSignalingChannelMixin.connectedCallback')
+            super.connectedCallback();
+
+            this.instance = this;
+        }
+
+        connect(name) {
+            console.log('RtcSignalingChannelMixin.connect')
+        }
+
+        send(target, data) {
+            console.log('RtcSignalingChannelMixin.send', target, data)
+        }
+    }
+
+</script>
